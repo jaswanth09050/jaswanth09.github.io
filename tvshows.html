@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TV Shows — StreamVault</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    /* ── PAGE HERO ── */
+    .shows-hero {
+      min-height:320px; position:relative;
+      display:flex; align-items:flex-end; padding:0 5% 3rem;
+      overflow:hidden; margin-top:var(--nav-h);
+    }
+    .shows-hero-bg {
+      position:absolute; inset:0;
+      background:
+        linear-gradient(to bottom, rgba(8,12,20,.5) 0%, rgba(8,12,20,1) 100%),
+        linear-gradient(135deg, #0e1525 0%, #1a0505 100%);
+    }
+    .shows-hero-bg::before {
+      content:''; position:absolute; inset:0;
+      background: radial-gradient(ellipse at 15% 60%,rgba(229,9,20,.22) 0%,transparent 55%),
+                  radial-gradient(ellipse at 80% 30%,rgba(255,107,53,.1) 0%,transparent 50%);
+    }
+    /* floating show thumbnails in hero */
+    .hero-shows-grid {
+      position:absolute; right:5%; top:50%; transform:translateY(-50%);
+      display:grid; grid-template-columns:repeat(4,80px); gap:8px; opacity:.45;
+    }
+    .hero-shows-grid img {
+      width:80px; height:112px; object-fit:cover; border-radius:6px;
+      filter:brightness(.7);
+    }
+    .shows-hero-content { position:relative; z-index:2; }
+    .shows-hero-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(229,9,20,.15); border:1px solid rgba(229,9,20,.3);
+      border-radius:20px; padding:5px 14px; font-size:.75rem; font-weight:700;
+      color:var(--red); margin-bottom:1rem; letter-spacing:1px; text-transform:uppercase;
+    }
+    .shows-hero-title {
+      font-family:var(--font-d); font-size:clamp(2.8rem,6vw,5rem);
+      letter-spacing:2px; line-height:1; margin-bottom:.6rem;
+    }
+    .shows-hero-title span { color:var(--red); }
+    .shows-hero-sub { color:var(--muted); font-size:.97rem; max-width:460px; line-height:1.6; }
+
+    /* ── FEATURED SHOW BANNER ── */
+    .featured-show {
+      margin:2rem 5%; border-radius:16px; overflow:hidden;
+      position:relative; height:340px;
+    }
+    .feat-show-bg {
+      position:absolute; inset:0; background-size:cover; background-position:center;
+      transition:transform 6s ease;
+    }
+    .featured-show:hover .feat-show-bg { transform:scale(1.03); }
+    .feat-show-overlay {
+      position:absolute; inset:0;
+      background:linear-gradient(to right,rgba(8,12,20,.97) 40%,rgba(8,12,20,.2) 100%);
+    }
+    .feat-show-content {
+      position:relative; z-index:1; height:100%;
+      display:flex; flex-direction:column; justify-content:center; padding:2.5rem 3rem;
+    }
+    .feat-show-label { font-size:.68rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:.6rem; }
+    .feat-show-title { font-family:var(--font-d); font-size:3rem; letter-spacing:2px; line-height:1; margin-bottom:.5rem; }
+    .feat-show-meta  { display:flex; gap:.8rem; align-items:center; flex-wrap:wrap; margin-bottom:.8rem; font-size:.83rem; color:var(--muted); }
+    .feat-show-meta .stag { background:rgba(229,9,20,.15); border:1px solid rgba(229,9,20,.3); color:var(--red); border-radius:4px; padding:2px 8px; font-size:.72rem; }
+    .feat-show-desc { max-width:420px; color:rgba(232,234,240,.75); font-size:.9rem; line-height:1.65; margin-bottom:1.4rem; }
+    .feat-show-actions { display:flex; gap:.9rem; flex-wrap:wrap; }
+
+    /* ── SHOW CARDS (wider aspect for landscape) ── */
+    .show-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:1.2rem;
+    }
+    .show-card-wide {
+      background:var(--card); border-radius:12px; overflow:hidden;
+      border:1px solid var(--border); cursor:pointer;
+      transition:transform .3s, box-shadow .3s;
+    }
+    .show-card-wide:hover {
+      transform:translateY(-5px);
+      box-shadow:0 20px 50px rgba(0,0,0,.6);
+      border-color:rgba(229,9,20,.3);
+    }
+    .scw-thumb {
+      position:relative; height:160px;
+    }
+    .scw-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .scw-thumb::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(to top,rgba(8,12,20,.8) 0%,transparent 50%);
+    }
+    .scw-badge {
+      position:absolute; top:10px; left:10px; z-index:2;
+      background:var(--red); color:#fff; font-size:.62rem; font-weight:700;
+      letter-spacing:1px; padding:3px 8px; border-radius:4px; text-transform:uppercase;
+    }
+    .scw-rating {
+      position:absolute; top:10px; right:10px; z-index:2;
+      background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
+      border-radius:4px; padding:3px 8px; font-size:.72rem; font-weight:700; color:var(--gold);
+    }
+    .scw-play-overlay {
+      position:absolute; inset:0; z-index:3;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(229,9,20,.0); transition:background .25s;
+    }
+    .show-card-wide:hover .scw-play-overlay { background:rgba(229,9,20,.15); }
+    .scw-play-btn {
+      width:50px; height:50px; border-radius:50%;
+      background:rgba(229,9,20,.9); border:2px solid rgba(255,255,255,.3);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.2rem; opacity:0; transform:scale(.7);
+      transition:all .25s;
+    }
+    .show-card-wide:hover .scw-play-btn { opacity:1; transform:scale(1); }
+
+    .scw-body { padding:1rem 1.1rem 1.2rem; }
+    .scw-title { font-family:var(--font-d); font-size:1.15rem; letter-spacing:.5px; margin-bottom:.3rem; }
+    .scw-meta  { font-size:.75rem; color:var(--muted); display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:.6rem; }
+    .scw-desc  { font-size:.8rem; color:rgba(232,234,240,.65); line-height:1.55; margin-bottom:.9rem;
+                 display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .scw-actions { display:flex; gap:.6rem; }
+    .scw-btn {
+      flex:1; padding:8px; border-radius:8px; border:none;
+      cursor:pointer; font-family:var(--font-b); font-size:.8rem; font-weight:600;
+      transition:all .2s; display:flex; align-items:center; justify-content:center; gap:5px;
+    }
+    .scw-btn.play  { background:var(--red); color:#fff; }
+    .scw-btn.play:hover { background:var(--red2); transform:translateY(-1px); }
+    .scw-btn.wish  { background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--border); }
+    .scw-btn.wish:hover { background:rgba(229,9,20,.15); border-color:var(--red); color:var(--red); }
+    .scw-btn.wish.active { background:rgba(229,9,20,.2); border-color:var(--red); color:var(--red); }
+
+    /* ── GENRE FILTER ── */
+    .shows-genres {
+      display:flex; gap:.7rem; overflow-x:auto;
+      padding:1.5rem 5% .5rem; scrollbar-width:none;
+    }
+    .shows-genres::-webkit-scrollbar { display:none; }
+
+    /* ── SECTION ── */
+    .section { padding:2rem 5%; }
+    .sec-hdr  { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.3rem; }
+    .sec-title { font-family:var(--font-d); font-size:1.7rem; letter-spacing:1px; }
+    .sec-title span { color:var(--red); }
+
+    /* ── SHOW ROW (scroll) ── */
+    .show-row { display:flex; gap:1rem; overflow-x:auto; padding-bottom:.5rem; scrollbar-width:none; }
+    .show-row::-webkit-scrollbar { display:none; }
+    .show-row .show-card-wide { flex-shrink:0; width:280px; }
+
+    /* ── EPISODES PREVIEW ── */
+    .ep-preview {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:12px; padding:1rem 1.2rem; margin-top:.8rem;
+      display:none;
+    }
+    .ep-preview.open { display:block; }
+    .ep-preview-title { font-size:.8rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:.7rem; }
+    .ep-mini { display:flex; align-items:center; gap:.8rem; padding:.45rem 0; border-bottom:1px solid var(--border); cursor:pointer; transition:color .2s; }
+    .ep-mini:last-child { border-bottom:none; }
+    .ep-mini:hover { color:var(--red); }
+    .ep-mini-num { font-family:var(--font-d); font-size:1rem; color:var(--red); width:24px; flex-shrink:0; }
+    .ep-mini-info { flex:1; font-size:.82rem; }
+    .ep-mini-dur  { font-size:.72rem; color:var(--muted); margin-top:1px; }
+    .ep-mini-play { font-size:.9rem; color:var(--muted); }
+
+    @media(max-width:700px){
+      .hero-shows-grid { display:none; }
+      .featured-show   { height:260px; }
+      .feat-show-desc  { display:none; }
+      .show-grid       { grid-template-columns:1fr 1fr; }
+    }
+  
+</style>
+</head>
+<body>
+
+<nav id="mainNav"></nav>
+<div class="mob-menu" id="mobMenu">
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="movies.html">Movies</a></li>
+    <li><a href="tvshows.html">TV Shows</a></li>
+    <li><a href="movies.html?cat=new">New &amp; Popular</a></li>
+    <li><a href="profile.html?tab=list">Wishlist ❤️</a></li>
+  </ul>
+</div>
+
+<!-- PAGE HERO -->
+<div class="shows-hero">
+  <div class="shows-hero-bg"></div>
+  <div class="hero-shows-grid" id="heroShowsGrid"></div>
+  <div class="shows-hero-content">
+    <div class="shows-hero-badge">✦ StreamVault Originals</div>
+    <h1 class="shows-hero-title">Original <span>TV Shows</span></h1>
+    <p class="shows-hero-sub">Binge-worthy originals made exclusively for StreamVault — gripping dramas, edge-of-seat thrillers, epic fantasies and more.</p>
+  </div>
+</div>
+
+<!-- GENRE FILTER PILLS -->
+<div class="shows-genres">
+  <div class="gpill active" onclick="filterShows(this,'all')">All Shows</div>
+  <div class="gpill" onclick="filterShows(this,'Action')">Action</div>
+  <div class="gpill" onclick="filterShows(this,'Drama')">Drama</div>
+  <div class="gpill" onclick="filterShows(this,'Thriller')">Thriller</div>
+  <div class="gpill" onclick="filterShows(this,'Fantasy')">Fantasy</div>
+  <div class="gpill" onclick="filterShows(this,'Sci-Fi')">Sci-Fi</div>
+  <div class="gpill" onclick="filterShows(this,'Mystery')">Mystery</div>
+  <div class="gpill" onclick="filterShows(this,'Romance')">Romance</div>
+</div>
+
+<!-- FEATURED SHOW BANNER -->
+<div class="featured-show reveal">
+  <div class="feat-show-bg" id="featBg"></div>
+  <div class="feat-show-overlay"></div>
+  <div class="feat-show-content">
+    <div class="feat-show-label">✦ Editor's Pick · StreamVault Original</div>
+    <h2 class="feat-show-title" id="featTitle">—</h2>
+    <div class="feat-show-meta" id="featMeta"></div>
+    <p class="feat-show-desc"  id="featDesc"></p>
+    <div class="feat-show-actions">
+      <button class="btn-h btn-play" id="featPlayBtn">▶ Play S1 E1</button>
+      <button class="btn-h btn-info" id="featWishBtn">🤍 Wishlist</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALL SHOWS GRID -->
+<section class="section reveal">
+  <div class="sec-hdr">
+    <h2 class="sec-title">All <span>Original Shows</span></h2>
+    <span class="see-all" id="showCount"></span>
+  </div>
+  <div class="show-grid" id="showsGrid"></div>
+</section>
+
+<!-- BY GENRE ROW — Action -->
+<section class="section reveal" id="secAction">
+  <div class="sec-hdr">
+    <h2 class="sec-title">⚔️ Action & <span>Thriller</span></h2>
+  </div>
+  <div class="show-row" id="actionRow"></div>
+</section>
+
+<!-- BY GENRE ROW — Drama -->
+<section class="section reveal" id="secDrama">
+  <div class="sec-hdr">
+    <h2 class="sec-title">🎭 Drama & <span>Romance</span></h2>
+  </div>
+  <div class="show-row" id="dramaRow"></div>
+</section>
+
+<!-- BY GENRE ROW — Sci-Fi & Fantasy -->
+<section class="section reveal" id="secScifi">
+  <div class="sec-hdr">
+    <h2 class="sec-title">🚀 Sci-Fi & <span>Fantasy</span></h2>
+  </div>
+  <div class="show-row" id="scifiRow"></div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script src="shared.js"></script>
+<script>
+const SHOWS = MOVIES_DB.tvshows;
+
+/* ── FEATURED BANNER ── */
+function loadFeatured(show) {
+  document.getElementById('featBg').style.backgroundImage = `url('${show.img}')`;
+  document.getElementById('featTitle').textContent = show.title;
+  document.getElementById('featDesc').textContent  = show.desc;
+  document.getElementById('featMeta').innerHTML = `
+    <span class="stars">★ ${show.rating}</span>
+    <span class="stag">ORIGINAL</span>
+    <span class="stag">${show.seasons} Seasons · ${show.episodes} Episodes</span>
+    <span class="stag">${show.lang}</span>
+    <span class="stag">${show.genre}</span>`;
+
+  document.getElementById('featPlayBtn').onclick = () => playContent(show.id, 'show');
+  const wb = document.getElementById('featWishBtn');
+  wb.textContent = Watchlist.has(show.id) ? '❤️ In Wishlist' : '🤍 Wishlist'; wb.className='btn-h btn-info wl-'+show.id+(Watchlist.has(show.id)?' wl-active':'');
+  wb.onclick = () => {
+    wlToggle(show.id);
+    wb.textContent = Watchlist.has(show.id) ? '❤️ In Wishlist' : '🤍 Wishlist'; wb.className='btn-h btn-info wl-'+show.id+(Watchlist.has(show.id)?' wl-active':'');
+  };
+}
+
+/* ── RENDER ONE SHOW CARD ── */
+function renderShowCard(s) {
+  const inList = Watchlist.has(s.id);
+  return `
+    <div class="show-card-wide" id="sc-${s.id}">
+      <div class="scw-thumb">
+        <img src="${s.img}" alt="${s.title}"
+             onerror="this.style.background='linear-gradient(135deg,#1a2035,#0e1525)';this.removeAttribute('src')"/>
+        <div class="scw-badge">ORIGINAL</div>
+        <div class="scw-rating">★ ${s.rating}</div>
+        <div class="scw-play-overlay">
+          <div class="scw-play-btn" onclick="playContent(${s.id},'show')">▶</div>
+        </div>
+      </div>
+      <div class="scw-body">
+        <div class="scw-title">${s.title}</div>
+        <div class="scw-meta">
+          <span>★ ${s.rating}</span>
+          <span>${s.seasons} Seasons · ${s.episodes} Eps</span>
+          <span>${s.lang}</span>
+          <span>${s.genre}</span>
+        </div>
+        <div class="scw-desc">${s.desc}</div>
+        <div class="scw-actions">
+          <button class="scw-btn play" onclick="playContent(${s.id},'show')">▶ Play</button>
+          <button class="scw-btn wish ${inList ? 'active' : ''}" id="wl-sc-${s.id}"
+            onclick="wlToggle(${s.id})">
+            ${inList ? '❤️' : '🤍'} Wishlist
+          </button>
+        </div>
+        <!-- EPISODES PREVIEW -->
+        <div class="ep-preview" id="epp-${s.id}">
+          <div class="ep-preview-title">Episodes — Season 1</div>
+          ${s.eps.slice(0,3).map(ep => `
+            <div class="ep-mini" onclick="playContent(${s.id},'show')">
+              <div class="ep-mini-num">${ep.ep}</div>
+              <div class="ep-mini-info">
+                <div>${ep.title}</div>
+                <div class="ep-mini-dur">${ep.dur}</div>
+              </div>
+              <div class="ep-mini-play">▶</div>
+            </div>`).join('')}
+          ${s.eps.length > 3 ? `<div style="font-size:.75rem;color:var(--muted);padding-top:.4rem;">+${s.eps.length-3} more episodes</div>` : ''}
+        </div>
+        <button style="background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;margin-top:.5rem;font-family:var(--font-b);"
+          onclick="document.getElementById('epp-${s.id}').classList.toggle('open');this.textContent=document.getElementById('epp-${s.id}').classList.contains('open')?'▲ Hide episodes':'▼ Show episodes'">
+          ▼ Show episodes
+        </button>
+      </div>
+    </div>`;
+}
+
+
+
+/* ── FILTER ── */
+let currentFilter = 'all';
+function filterShows(el, genre) {
+  document.querySelectorAll('.gpill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = genre;
+  renderGrid();
+}
+
+function renderGrid() {
+  const filtered = currentFilter === 'all' ? SHOWS : SHOWS.filter(s => s.genre === currentFilter);
+  document.getElementById('showsGrid').innerHTML = filtered.map(renderShowCard).join('') ||
+    `<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem;">No shows in this genre yet.</div>`;
+  document.getElementById('showCount').textContent = filtered.length + ' shows';
+}
+
+/* ── INIT ── */
+window.addEventListener('DOMContentLoaded', () => {
+  buildNav('shows');
+  buildFooter();
+  initNavScroll();
+  initReveal();
+
+  // Hero thumbnails
+  document.getElementById('heroShowsGrid').innerHTML = SHOWS.slice(0,8).map(s =>
+    `<img src="${s.img}" alt="${s.title}" onerror="this.style.background='#1a2035';this.removeAttribute('src')"/>`
+  ).join('');
+
+  // Featured = highest rated show
+  const featured = [...SHOWS].sort((a,b) => parseFloat(b.rating)-parseFloat(a.rating))[0];
+  loadFeatured(featured);
+
+  // All shows grid
+  renderGrid();
+
+  // Genre rows
+  const action = SHOWS.filter(s => s.genre === 'Action' || s.genre === 'Thriller');
+  const drama  = SHOWS.filter(s => s.genre === 'Drama'  || s.genre === 'Romance' || s.genre === 'Mystery');
+  const scifi  = SHOWS.filter(s => s.genre === 'Sci-Fi' || s.genre === 'Fantasy');
+
+  document.getElementById('actionRow').innerHTML = action.map(renderShowCard).join('');
+  document.getElementById('dramaRow').innerHTML  = drama.map(renderShowCard).join('');
+  document.getElementById('scifiRow').innerHTML  = scifi.map(renderShowCard).join('');
+
+  // hide empty rows
+  if (!action.length) document.getElementById('secAction').style.display = 'none';
+  if (!drama.length)  document.getElementById('secDrama').style.display  = 'none';
+  if (!scifi.length)  document.getElementById('secScifi').style.display  = 'none';
+});
+</script>
+</body>
+</html>

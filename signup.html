@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account — StreamVault</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body { min-height:100vh; display:flex; flex-direction:column; }
+
+    .auth-bg {
+      position:fixed; inset:0; z-index:0;
+      background:
+        linear-gradient(135deg, rgba(8,12,20,.92) 0%, rgba(14,21,37,.85) 100%),
+        url('posters/rrr.jpg') center/cover no-repeat;
+    }
+    .auth-bg::after {
+      content:''; position:absolute; inset:0;
+      background: radial-gradient(ellipse at 80% 50%, rgba(229,9,20,.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(255,107,53,.08) 0%, transparent 50%);
+    }
+
+    .auth-page {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      min-height:100vh; position:relative; padding:6rem 1rem 2rem;
+    }
+
+    .auth-card {
+      position:relative; z-index:1;
+      background:rgba(14,21,37,.92);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:2.5rem 2.5rem;
+      width:100%; max-width:480px;
+      backdrop-filter:blur(20px);
+      box-shadow:0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(229,9,20,.1);
+      animation:slideUp .5s ease both;
+    }
+    @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    .auth-logo { text-align:center; margin-bottom:1.5rem; }
+    .auth-logo a {
+      font-family:var(--font-d); font-size:2.2rem; letter-spacing:4px;
+      background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-decoration:none;
+    }
+    .auth-title { font-family:var(--font-d); font-size:2rem; letter-spacing:1px; text-align:center; margin-bottom:.3rem; }
+    .auth-sub   { text-align:center; color:var(--muted); font-size:.88rem; margin-bottom:1.8rem; }
+
+    .plan-select {
+      display:grid; grid-template-columns:1fr 1fr 1fr;
+      gap:.6rem; margin-bottom:1.5rem;
+    }
+    .plan-opt {
+      border:1px solid var(--border); border-radius:10px; padding:.75rem .5rem;
+      text-align:center; cursor:pointer; transition:all .2s;
+    }
+    .plan-opt:hover { border-color:rgba(229,9,20,.4); }
+    .plan-opt.selected { border-color:var(--red); background:rgba(229,9,20,.1); }
+    .plan-opt .p-name { font-family:var(--font-d); font-size:1rem; margin-bottom:.2rem; }
+    .plan-opt .p-price { font-size:.75rem; color:var(--red); font-weight:600; }
+    .plan-opt .p-feat  { font-size:.68rem; color:var(--muted); margin-top:.2rem; }
+
+    .form-group { margin-bottom:1.1rem; position:relative; }
+    .form-group label { display:block; font-size:.78rem; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:.45rem; }
+    .form-group input {
+      width:100%; padding:12px 16px; background:rgba(255,255,255,.05);
+      border:1px solid var(--border); border-radius:10px;
+      color:var(--text); font-family:var(--font-b); font-size:.95rem;
+      outline:none; transition:all .25s;
+    }
+    .form-group input:focus { border-color:var(--red); background:rgba(229,9,20,.05); box-shadow:0 0 0 3px rgba(229,9,20,.12); }
+    .form-group input::placeholder { color:var(--muted); }
+    .input-icon { position:absolute; right:14px; bottom:13px; color:var(--muted); font-size:1rem; cursor:pointer; }
+
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:.9rem; }
+
+    .strength-bar { height:3px; background:rgba(255,255,255,.1); border-radius:3px; margin-top:.4rem; overflow:hidden; }
+    .strength-fill { height:100%; border-radius:3px; transition:width .3s,background .3s; width:0; }
+
+    .terms {
+      display:flex; align-items:flex-start; gap:10px; margin-bottom:1.3rem;
+      font-size:.82rem; color:var(--muted);
+    }
+    .terms input { accent-color:var(--red); width:15px; height:15px; margin-top:2px; flex-shrink:0; cursor:pointer; }
+    .terms a { color:var(--red); text-decoration:none; }
+
+    .btn-submit {
+      width:100%; padding:14px; border-radius:10px;
+      background:var(--grad); border:none; color:#fff;
+      font-family:var(--font-b); font-size:1rem; font-weight:700;
+      cursor:pointer; letter-spacing:.5px; transition:all .25s; position:relative; overflow:hidden;
+    }
+    .btn-submit::before { content:''; position:absolute; inset:0; background:rgba(255,255,255,.1); opacity:0; transition:opacity .2s; }
+    .btn-submit:hover::before { opacity:1; }
+    .btn-submit:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(229,9,20,.5); }
+
+    .error-msg {
+      background:rgba(229,9,20,.1); border:1px solid rgba(229,9,20,.3);
+      border-radius:8px; padding:.75rem 1rem; font-size:.85rem; color:#ff6b6b;
+      margin-bottom:1.2rem; display:none;
+    }
+    .error-msg.show { display:block; }
+
+    .success-msg {
+      background:rgba(0,200,80,.08); border:1px solid rgba(0,200,80,.25);
+      border-radius:8px; padding:.75rem 1rem; font-size:.85rem; color:#4ade80;
+      margin-bottom:1.2rem; display:none;
+    }
+    .success-msg.show { display:block; }
+
+    .auth-switch { text-align:center; font-size:.88rem; color:var(--muted); margin-top:1.3rem; }
+    .auth-switch a { color:var(--red); text-decoration:none; font-weight:600; }
+
+    .top-nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      padding:1.2rem 5%;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .top-nav-logo {
+      font-family:var(--font-d); font-size:1.8rem; letter-spacing:3px;
+      background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-decoration:none;
+    }
+  
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a class="top-nav-logo" href="index.html">🎬 STREAMVAULT</a>
+  <a class="btn-nv btn-si" href="login.html">Sign In</a>
+</div>
+
+<div class="auth-bg"></div>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo"><a href="index.html">🎬 STREAMVAULT</a></div>
+    <h1 class="auth-title">Create Account</h1>
+    <p class="auth-sub">Choose your plan and start watching today</p>
+
+    <!-- PLAN SELECTOR -->
+    <div class="plan-select">
+      <div class="plan-opt" onclick="selectPlan(this,'Basic')">
+        <div class="p-name">Basic</div>
+        <div class="p-price">₹149/mo</div>
+        <div class="p-feat">HD · 1 Screen</div>
+      </div>
+      <div class="plan-opt selected" onclick="selectPlan(this,'Premium')">
+        <div class="p-name">Premium</div>
+        <div class="p-price">₹499/mo</div>
+        <div class="p-feat">4K · 4 Screens</div>
+      </div>
+      <div class="plan-opt" onclick="selectPlan(this,'Student')">
+        <div class="p-name">Student</div>
+        <div class="p-price">₹99/mo</div>
+        <div class="p-feat">HD · Mobile</div>
+      </div>
+    </div>
+
+    <div class="error-msg"   id="errorMsg">❌ <span id="errorText"></span></div>
+    <div class="success-msg" id="successMsg">✅ Account created! Redirecting…</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="fname" placeholder="Arjun"/>
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input type="text" id="lname" placeholder="Reddy"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Min 6 characters" oninput="checkStrength(this.value)" autocomplete="new-password"/>
+      <span class="input-icon" onclick="togglePwd('password')">👁</span>
+      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+    </div>
+
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input type="password" id="confirm" placeholder="Re-enter password" autocomplete="new-password"/>
+      <span class="input-icon" onclick="togglePwd('confirm')">👁</span>
+    </div>
+
+    <div class="terms">
+      <input type="checkbox" id="terms"/>
+      <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a> of StreamVault.</span>
+    </div>
+
+    <button class="btn-submit" onclick="doSignup()">Create My Account →</button>
+
+    <div class="auth-switch">
+      Already have an account? <a href="login.html">Sign in</a>
+    </div>
+
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  if (Auth.current()) window.location.href = 'index.html';
+
+  let selectedPlan = 'Premium';
+
+  function selectPlan(el, plan) {
+    document.querySelectorAll('.plan-opt').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPlan = plan;
+  }
+
+  function togglePwd(id) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function checkStrength(val) {
+    const fill = document.getElementById('strengthFill');
+    let score = 0;
+    if (val.length >= 6)  score++;
+    if (val.length >= 10) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const pct = (score / 5) * 100;
+    const clr = score < 2 ? '#e50914' : score < 4 ? '#f5c518' : '#22c55e';
+    fill.style.width = pct + '%';
+    fill.style.background = clr;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    document.getElementById('errorText').textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  function doSignup() {
+    const fname = document.getElementById('fname').value.trim();
+    const lname = document.getElementById('lname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pwd   = document.getElementById('password').value;
+    const conf  = document.getElementById('confirm').value;
+    const terms = document.getElementById('terms').checked;
+
+    if (!fname || !lname)     { showError('Please enter your full name.'); return; }
+    if (!email)               { showError('Please enter your email address.'); return; }
+    if (pwd.length < 6)       { showError('Password must be at least 6 characters.'); return; }
+    if (pwd !== conf)         { showError('Passwords do not match.'); return; }
+    if (!terms)               { showError('Please accept the Terms of Service.'); return; }
+
+    const name = fname + ' ' + lname;
+    const res  = Auth.signup(name, email, pwd);
+    if (!res.ok) { showError(res.msg); return; }
+
+    // save plan
+    const user = Auth.current();
+    user.plan = selectedPlan;
+    localStorage.setItem('sv_user', JSON.stringify(user));
+
+    document.getElementById('successMsg').classList.add('show');
+    setTimeout(() => window.location.href = 'index.html', 1200);
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
+</script>
+</body>
+</html>

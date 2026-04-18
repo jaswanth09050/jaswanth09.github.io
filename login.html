@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In — StreamVault</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body { min-height:100vh; display:flex; flex-direction:column; }
+
+    .auth-page {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      min-height:100vh; position:relative; padding:2rem 1rem;
+    }
+
+    /* cinematic background */
+    .auth-bg {
+      position:fixed; inset:0; z-index:0;
+      background:
+        linear-gradient(135deg, rgba(8,12,20,.92) 0%, rgba(14,21,37,.85) 100%),
+        url('posters/baahubali-2.jpg') center/cover no-repeat;
+    }
+    .auth-bg::after {
+      content:''; position:absolute; inset:0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(229,9,20,.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(255,107,53,.08) 0%, transparent 50%);
+    }
+
+    /* floating film strips deco */
+    .deco-strip {
+      position:fixed; top:0; bottom:0; width:60px;
+      display:flex; flex-direction:column; gap:4px; padding:4px; opacity:.07;
+      pointer-events:none;
+    }
+    .deco-strip.left  { left:0; }
+    .deco-strip.right { right:0; }
+    .deco-frame { flex:1; background:rgba(255,255,255,.4); border-radius:2px; }
+
+    .auth-card {
+      position:relative; z-index:1;
+      background: rgba(14,21,37,.92);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:2.8rem 2.5rem;
+      width:100%; max-width:440px;
+      backdrop-filter:blur(20px);
+      box-shadow:0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(229,9,20,.1);
+      animation:slideUp .5s ease both;
+    }
+    @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    .auth-logo {
+      text-align:center; margin-bottom:2rem;
+    }
+    .auth-logo a {
+      font-family:var(--font-d); font-size:2.2rem; letter-spacing:4px;
+      background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-decoration:none;
+    }
+
+    .auth-title {
+      font-family:var(--font-d); font-size:2rem; letter-spacing:1px;
+      text-align:center; margin-bottom:.3rem;
+    }
+    .auth-sub {
+      text-align:center; color:var(--muted); font-size:.88rem; margin-bottom:2rem;
+    }
+
+    .form-group { margin-bottom:1.2rem; position:relative; }
+    .form-group label {
+      display:block; font-size:.78rem; font-weight:600; letter-spacing:1px;
+      text-transform:uppercase; color:var(--muted); margin-bottom:.5rem;
+    }
+    .form-group input {
+      width:100%; padding:13px 16px; background:rgba(255,255,255,.05);
+      border:1px solid var(--border); border-radius:10px;
+      color:var(--text); font-family:var(--font-b); font-size:.95rem;
+      outline:none; transition:all .25s;
+    }
+    .form-group input:focus {
+      border-color:var(--red); background:rgba(229,9,20,.05);
+      box-shadow:0 0 0 3px rgba(229,9,20,.12);
+    }
+    .form-group input::placeholder { color:var(--muted); }
+
+    .input-icon {
+      position:absolute; right:14px; bottom:14px;
+      color:var(--muted); font-size:1rem; cursor:pointer;
+      transition:color .2s;
+    }
+    .input-icon:hover { color:var(--red); }
+
+    .form-options {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:1.5rem; font-size:.83rem;
+    }
+    .remember { display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--muted); }
+    .remember input[type=checkbox] { accent-color:var(--red); width:15px; height:15px; cursor:pointer; }
+    .forgot { color:var(--red); text-decoration:none; font-size:.83rem; transition:opacity .2s; }
+    .forgot:hover { opacity:.75; }
+
+    .btn-submit {
+      width:100%; padding:14px; border-radius:10px;
+      background:var(--grad); border:none; color:#fff;
+      font-family:var(--font-b); font-size:1rem; font-weight:700;
+      cursor:pointer; letter-spacing:.5px;
+      transition:all .25s; position:relative; overflow:hidden;
+    }
+    .btn-submit::before {
+      content:''; position:absolute; inset:0;
+      background:rgba(255,255,255,.1); opacity:0; transition:opacity .2s;
+    }
+    .btn-submit:hover::before { opacity:1; }
+    .btn-submit:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(229,9,20,.5); }
+    .btn-submit:active { transform:translateY(0); }
+
+    .error-msg {
+      background:rgba(229,9,20,.1); border:1px solid rgba(229,9,20,.3);
+      border-radius:8px; padding:.75rem 1rem; font-size:.85rem; color:#ff6b6b;
+      margin-bottom:1.2rem; display:none; animation:shake .3s ease;
+    }
+    .error-msg.show { display:block; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+    .divider { display:flex; align-items:center; gap:1rem; margin:1.5rem 0; }
+    .divider hr { flex:1; border:none; border-top:1px solid var(--border); }
+    .divider span { color:var(--muted); font-size:.8rem; white-space:nowrap; }
+
+    .social-logins { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:1.5rem; }
+    .btn-social {
+      padding:11px; border-radius:10px; border:1px solid var(--border);
+      background:rgba(255,255,255,.04); color:var(--text);
+      font-family:var(--font-b); font-size:.85rem; font-weight:500;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+      transition:all .2s;
+    }
+    .btn-social:hover { border-color:rgba(255,255,255,.2); background:rgba(255,255,255,.08); }
+
+    .auth-switch {
+      text-align:center; font-size:.88rem; color:var(--muted); margin-top:1.5rem;
+    }
+    .auth-switch a { color:var(--red); text-decoration:none; font-weight:600; }
+    .auth-switch a:hover { text-decoration:underline; }
+
+    .plan-note {
+      margin-top:1rem; padding:.9rem; border-radius:10px;
+      background:rgba(245,197,24,.07); border:1px solid rgba(245,197,24,.15);
+      text-align:center; font-size:.8rem; color:var(--gold);
+    }
+
+    .top-nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      padding:1.2rem 5%;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .top-nav-logo {
+      font-family:var(--font-d); font-size:1.8rem; letter-spacing:3px;
+      background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-decoration:none;
+    }
+  
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <a class="top-nav-logo" href="index.html">🎬 STREAMVAULT</a>
+  <a class="btn-nv btn-si" href="signup.html">Create Account</a>
+</div>
+
+<!-- BG -->
+<div class="auth-bg"></div>
+<div class="deco-strip left">
+  <div class="deco-frame"></div><div class="deco-frame"></div><div class="deco-frame"></div>
+  <div class="deco-frame"></div><div class="deco-frame"></div><div class="deco-frame"></div>
+  <div class="deco-frame"></div><div class="deco-frame"></div><div class="deco-frame"></div>
+</div>
+<div class="deco-strip right">
+  <div class="deco-frame"></div><div class="deco-frame"></div><div class="deco-frame"></div>
+  <div class="deco-frame"></div><div class="deco-frame"></div><div class="deco-frame"></div>
+  <div class="deco-frame"></div><div class="deco-frame"></div><div class="deco-frame"></div>
+</div>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo"><a href="index.html">🎬 STREAMVAULT</a></div>
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-sub">Sign in to continue watching</p>
+
+    <div class="error-msg" id="errorMsg">❌ <span id="errorText"></span></div>
+
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password"/>
+      <span class="input-icon" id="togglePwd" onclick="togglePassword()">👁</span>
+    </div>
+
+    <div class="form-options">
+      <label class="remember">
+        <input type="checkbox" id="remember"/> Remember me
+      </label>
+      <a href="#" class="forgot" onclick="showToast('Password reset link sent! 📧')">Forgot password?</a>
+    </div>
+
+    <button class="btn-submit" onclick="doLogin()">Sign In →</button>
+
+    <div class="divider">
+      <hr/><span>or continue with</span><hr/>
+    </div>
+
+    <div class="social-logins">
+      <button class="btn-social" onclick="demoLogin()">🔥 Demo Login</button>
+      <button class="btn-social" onclick="showToast('Google sign-in coming soon!')">🌐 Google</button>
+    </div>
+
+    <div class="auth-switch">
+      New to StreamVault? <a href="signup.html">Create an account</a>
+    </div>
+
+    <div class="plan-note">
+      🎬 Plans from just <strong>₹99/month</strong> — Cancel anytime
+    </div>
+
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  // Redirect if already logged in
+  if (Auth.current()) window.location.href = 'index.html';
+
+  function togglePassword() {
+    const inp = document.getElementById('password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    document.getElementById('errorText').textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  function doLogin() {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) { showError('Please fill in all fields.'); return; }
+    const res = Auth.login('', email, password);
+    if (res.ok) {
+      showToast('Welcome back, ' + res.user.name + '! 🎬');
+      setTimeout(() => window.location.href = 'index.html', 900);
+    } else {
+      showError(res.msg);
+    }
+  }
+
+  function demoLogin() {
+    // Auto-create & login demo user
+    let users = JSON.parse(localStorage.getItem('sv_users') || '[]');
+    if (!users.find(u => u.email === 'demo@streamvault.com')) {
+      Auth.signup('Demo User', 'demo@streamvault.com', 'demo123');
+    }
+    Auth.login('', 'demo@streamvault.com', 'demo123');
+    showToast('Logged in as Demo User 🎬');
+    setTimeout(() => window.location.href = 'index.html', 900);
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
+</body>
+</html>

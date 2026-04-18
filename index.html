@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StreamVault — Watch Anything, Anywhere</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    #loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s,visibility .6s;}
+    #loader.hidden{opacity:0;visibility:hidden;}
+
+    /* HERO */
+    .hero{position:relative;height:100vh;min-height:580px;display:flex;align-items:center;padding:0 5%;overflow:hidden;}
+    .hero-bg{position:absolute;inset:0;background-size:cover!important;background-position:center right!important;transition:opacity .5s;}
+    .particles{position:absolute;inset:0;pointer-events:none;}
+    .part{position:absolute;border-radius:50%;background:rgba(229,9,20,.12);animation:pfloat linear infinite;}
+    @keyframes pfloat{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.3);border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:600;color:var(--gold);margin-bottom:1.1rem;animation:fadeUp .6s ease both;}
+    .hdot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    .hero-title{font-family:var(--font-d);font-size:clamp(3.2rem,7.5vw,6.5rem);line-height:.95;letter-spacing:2px;animation:fadeUp .6s .1s ease both;}
+    .hero-meta{display:flex;align-items:center;gap:.9rem;margin-top:.9rem;font-size:.83rem;color:var(--muted);flex-wrap:wrap;animation:fadeUp .6s .2s ease both;}
+    .htag{background:rgba(229,9,20,.15);border:1px solid rgba(229,9,20,.3);color:var(--red);border-radius:4px;padding:2px 8px;font-size:.72rem;}
+    .hero-desc{max-width:500px;color:rgba(232,234,240,.75);font-size:.97rem;line-height:1.7;margin-top:.9rem;animation:fadeUp .6s .3s ease both;}
+    .hero-actions{display:flex;gap:.9rem;margin-top:1.8rem;flex-wrap:wrap;animation:fadeUp .6s .4s ease both;}
+    .hero-stats{display:flex;gap:2.5rem;margin-top:2.5rem;animation:fadeUp .6s .5s ease both;}
+    .sv{font-family:var(--font-d);font-size:1.9rem;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .sl{font-size:.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+    .hero-thumbs{position:absolute;bottom:2.5rem;right:5%;display:flex;gap:.75rem;z-index:2;}
+    .htumb{width:70px;height:100px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:all .3s;opacity:.55;}
+    .htumb.active{border-color:var(--red);opacity:1;transform:scale(1.06);}
+    .htumb img{width:100%;height:100%;object-fit:cover;}
+
+    /* CONTINUE WATCHING */
+    .cw-card{flex-shrink:0;width:265px;border-radius:var(--r);overflow:hidden;background:var(--card);cursor:pointer;transition:transform .3s;}
+    .cw-card:hover{transform:translateY(-4px);}
+    .cw-thumb{position:relative;height:152px;}
+    .cw-thumb img{width:100%;height:100%;object-fit:cover;}
+    .cw-thumb::after{content:'';position:absolute;inset:0;background:rgba(8,12,20,.3);}
+    .pov{position:absolute;top:50%;left:50%;z-index:2;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:rgba(229,9,20,.9);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:all .2s;}
+    .cw-card:hover .pov{transform:translate(-50%,-50%) scale(1.12);}
+    .pbar{height:3px;background:rgba(255,255,255,.1);}
+    .pfill{height:100%;background:var(--red);border-radius:2px;}
+    .cw-info{padding:.7rem .9rem;}
+    .cw-title{font-weight:600;font-size:.87rem;}
+    .cw-ep{font-size:.72rem;color:var(--muted);margin-top:2px;}
+
+    /* FEATURED BANNER */
+    .feat-banner{margin:1rem 5%;border-radius:16px;overflow:hidden;position:relative;height:300px;background:url('posters/paradise.jpeg') center/cover;}
+    .feat-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(8,12,20,.94) 38%,rgba(8,12,20,.25) 100%);}
+    .feat-content{position:relative;z-index:1;padding:2.2rem 2.8rem;height:100%;display:flex;flex-direction:column;justify-content:center;}
+    .feat-label{font-size:.68rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem;}
+    .feat-title{font-family:var(--font-d);font-size:2.8rem;letter-spacing:2px;line-height:1;margin-bottom:.7rem;}
+    .feat-desc{max-width:400px;color:rgba(232,234,240,.7);font-size:.88rem;line-height:1.6;margin-bottom:1.3rem;}
+
+    /* TOP 10 */
+    .t10-card{flex-shrink:0;width:150px;position:relative;cursor:pointer;}
+    .t10-num{position:absolute;bottom:-16px;left:-8px;font-family:var(--font-d);font-size:5.5rem;color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.13);line-height:1;z-index:0;user-select:none;}
+    .t10-img{border-radius:var(--r);overflow:hidden;aspect-ratio:2/3;position:relative;z-index:1;transition:transform .3s;}
+    .t10-img img{width:100%;height:100%;object-fit:cover;}
+    .t10-card:hover .t10-img{transform:scale(1.05);}
+
+    /* TV SHOWS ROW on homepage */
+    .show-card-home{flex-shrink:0;width:240px;border-radius:var(--r);overflow:hidden;background:var(--card);cursor:pointer;border:1px solid var(--border);transition:transform .3s,box-shadow .3s;}
+    .show-card-home:hover{transform:translateY(-5px);box-shadow:0 18px 45px rgba(0,0,0,.6);border-color:rgba(229,9,20,.3);}
+    .sch-img{position:relative;height:140px;}
+    .sch-img img{width:100%;height:100%;object-fit:cover;}
+    .sch-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(8,12,20,.8),transparent 60%);}
+    .sch-orig{position:absolute;top:8px;left:8px;z-index:2;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:4px;}
+    .sch-rating{position:absolute;top:8px;right:8px;z-index:2;background:rgba(0,0,0,.7);border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:700;color:var(--gold);}
+    .sch-body{padding:.8rem 1rem;}
+    .sch-title{font-weight:700;font-size:.9rem;margin-bottom:.25rem;}
+    .sch-meta{font-size:.72rem;color:var(--muted);margin-bottom:.7rem;}
+    .sch-actions{display:flex;gap:.5rem;}
+    .sch-btn{flex:1;padding:7px;border-radius:6px;border:none;cursor:pointer;font-family:var(--font-b);font-size:.75rem;font-weight:600;transition:all .2s;}
+    .sch-btn.play{background:var(--red);color:#fff;}
+    .sch-btn.play:hover{background:var(--red2);}
+    .sch-btn.wish{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--border);}
+    .sch-btn.wish:hover{background:rgba(229,9,20,.15);color:var(--red);}
+
+    /* PLANS */
+    .plans{padding:3.5rem 5%;text-align:center;}
+    .plans h2{font-family:var(--font-d);font-size:2.8rem;margin-bottom:.4rem;}
+    .plans p.sub{color:var(--muted);font-size:.95rem;margin-bottom:2.5rem;}
+    .plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.3rem;max-width:860px;margin:0 auto;}
+    .plan{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.8rem 1.4rem;transition:all .3s;position:relative;overflow:hidden;}
+    .plan.pop{border-color:var(--red);background:linear-gradient(135deg,rgba(229,9,20,.08),var(--surface));}
+    .pop-badge{position:absolute;top:14px;right:-22px;background:var(--red);color:#fff;font-size:.68rem;font-weight:700;letter-spacing:1px;padding:4px 30px;transform:rotate(45deg);}
+    .plan:hover{transform:translateY(-6px);box-shadow:0 18px 50px rgba(229,9,20,.13);}
+    .plan-name{font-family:var(--font-d);font-size:1.45rem;margin-bottom:.4rem;}
+    .plan-price{font-family:var(--font-d);font-size:2.8rem;color:var(--red);line-height:1;}
+    .plan-price span{font-family:var(--font-b);font-size:.95rem;color:var(--muted);}
+    .plan-feats{list-style:none;margin:1.3rem 0;text-align:left;}
+    .plan-feats li{padding:.45rem 0;font-size:.87rem;color:var(--muted);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+    .plan-feats li:last-child{border-bottom:none;}
+    .ck{color:var(--red);}
+    .btn-plan{width:100%;padding:12px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-b);font-size:.92rem;font-weight:600;cursor:pointer;transition:all .2s;}
+    .btn-plan:hover,.plan.pop .btn-plan{background:var(--red);color:#fff;}
+
+    @media(max-width:700px){.hero-thumbs,.feat-desc{display:none;}.hero-stats{gap:1.8rem;}}
+  
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="ld-logo">🎬 STREAMVAULT</div><div class="ld-bar"><div class="ld-fill"></div></div></div>
+
+<nav id="mainNav"></nav>
+<div class="mob-menu" id="mobMenu">
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="movies.html">Movies</a></li>
+    <li><a href="tvshows.html">TV Shows</a></li>
+    <li><a href="movies.html?cat=new">New &amp; Popular</a></li>
+    <li><a href="profile.html?tab=list">Wishlist ❤️</a></li>
+  </ul>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="particles" id="particles"></div>
+  <div style="position:relative;z-index:1;max-width:600px;">
+    <div class="hero-badge"><span class="hdot"></span> #1 in India Today</div>
+    <h1 class="hero-title" id="heroTitle">PARADISE</h1>
+    <div class="hero-meta">
+      <span class="stars">★★★★★</span>
+      <span id="heroRating">9.0/10</span>
+      <span class="htag">4K UHD</span>
+      <span class="htag" id="heroLang">Telugu</span>
+      <span id="heroYear">2025</span>
+    </div>
+    <p class="hero-desc" id="heroDesc">A high-octane action drama. When a decorated officer uncovers a deadly conspiracy, he must fight to protect everything he loves — at any cost.</p>
+    <div class="hero-actions">
+      <button class="btn-h btn-play" id="heroPlay">▶ Play Now</button>
+      <button class="btn-h btn-info" id="heroWish">🤍 Wishlist</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="sv">50K+</div><div class="sl">Titles</div></div>
+      <div><div class="sv">190+</div><div class="sl">Countries</div></div>
+      <div><div class="sv">4K</div><div class="sl">Ultra HD</div></div>
+    </div>
+  </div>
+  <div class="hero-thumbs" id="heroThumbs"></div>
+</section>
+
+<!-- GENRES -->
+<div class="genres">
+  <div class="gpill active" onclick="window.location.href='movies.html'">All</div>
+  <div class="gpill" onclick="window.location.href='movies.html?lang=Telugu'">Telugu</div>
+  <div class="gpill" onclick="window.location.href='movies.html?lang=Hindi'">Hindi</div>
+  <div class="gpill" onclick="window.location.href='movies.html?lang=Tamil'">Tamil</div>
+  <div class="gpill" onclick="window.location.href='movies.html?lang=Kannada'">Kannada</div>
+  <div class="gpill" onclick="window.location.href='movies.html?lang=English'">English</div>
+  <div class="gpill" onclick="window.location.href='tvshows.html'">TV Shows</div>
+  <div class="gpill" onclick="window.location.href='movies.html?cat=new'">New &amp; Popular</div>
+</div>
+
+<!-- CONTINUE WATCHING -->
+<section class="section reveal" id="cwSection">
+  <div class="sec-hdr">
+    <h2 class="sec-title">Continue <span>Watching</span></h2>
+    <a class="see-all" href="profile.html?tab=list">See all →</a>
+  </div>
+  <div class="movie-row" id="continueRow"></div>
+</section>
+
+<!-- TRENDING -->
+<section class="section reveal">
+  <div class="sec-hdr">
+    <h2 class="sec-title">🔥 Trending <span>Now</span></h2>
+    <a class="see-all" href="movies.html">See all →</a>
+  </div>
+  <div class="movie-grid" id="trendingGrid"></div>
+</section>
+
+<!-- FEATURED BANNER -->
+<div class="feat-banner reveal">
+  <div class="feat-content">
+    <div class="feat-label">✦ StreamVault Original</div>
+    <h2 class="feat-title">PARADISE</h2>
+    <p class="feat-desc">The most awaited blockbuster of 2025. Experience it in cinematic 4K Dolby Atmos.</p>
+    <div style="display:flex;gap:.9rem;flex-wrap:wrap">
+      <button class="btn-h btn-play" onclick="playContent(0,'movie')" style="font-size:.88rem;padding:11px 22px;">▶ Watch Now</button>
+      <button class="btn-h btn-info" onclick="wlToggle(0)" style="font-size:.88rem;padding:11px 22px;">🤍 Wishlist</button>
+    </div>
+  </div>
+</div>
+
+<!-- STREAMVAULT ORIGINALS — TV SHOWS -->
+<section class="section reveal">
+  <div class="sec-hdr">
+    <h2 class="sec-title">🎬 StreamVault <span>Originals</span></h2>
+    <a class="see-all" href="tvshows.html">All Shows →</a>
+  </div>
+  <div class="movie-row" id="showsRow"></div>
+</section>
+
+<!-- MOST VIEWED -->
+<section class="section reveal">
+  <div class="sec-hdr">
+    <h2 class="sec-title">👁 Most <span>Viewed</span></h2>
+    <a class="see-all" href="movies.html?cat=viewed">See all →</a>
+  </div>
+  <div class="movie-row" id="mostViewedRow"></div>
+</section>
+
+<!-- TOP 10 -->
+<section class="section reveal">
+  <div class="sec-hdr">
+    <h2 class="sec-title">Top <span>10</span> This Week</h2>
+    <a class="see-all" href="movies.html">See all →</a>
+  </div>
+  <div class="movie-row" id="top10Row"></div>
+</section>
+
+<!-- HOLLYWOOD -->
+<section class="section reveal">
+  <div class="sec-hdr">
+    <h2 class="sec-title">🌎 Hollywood <span>Movies</span></h2>
+    <a class="see-all" href="movies.html?cat=hollywood">See all →</a>
+  </div>
+  <div class="movie-grid" id="hollywoodGrid"></div>
+</section>
+
+<!-- PLANS -->
+<section class="plans reveal">
+  <h2>Choose Your <span style="color:var(--red)">Plan</span></h2>
+  <p class="sub">Stream unlimited. Cancel anytime. No hidden charges.</p>
+  <div class="plans-grid">
+    <div class="plan">
+      <div class="plan-name">Basic</div>
+      <div class="plan-price">₹149<span>/mo</span></div>
+      <ul class="plan-feats">
+        <li><span class="ck">✓</span>Full HD 1080p</li>
+        <li><span class="ck">✓</span>1 Screen at a time</li>
+        <li><span class="ck">✓</span>10,000+ titles</li>
+        <li><span class="ck">✓</span>Mobile &amp; Tablet</li>
+        <li><span class="ck">✗</span>Downloads</li>
+        <li><span class="ck">✗</span>4K / Dolby</li>
+      </ul>
+      <button class="btn-plan" onclick="if(!Auth.current()){window.location.href='signup.html'}else{showToast('Basic plan selected!')}">Get Started</button>
+    </div>
+    <div class="plan pop">
+      <div class="pop-badge">POPULAR</div>
+      <div class="plan-name">Premium</div>
+      <div class="plan-price">₹499<span>/mo</span></div>
+      <ul class="plan-feats">
+        <li><span class="ck">✓</span>4K Ultra HD</li>
+        <li><span class="ck">✓</span>4 Screens at a time</li>
+        <li><span class="ck">✓</span>50,000+ titles</li>
+        <li><span class="ck">✓</span>All Devices</li>
+        <li><span class="ck">✓</span>Downloads</li>
+        <li><span class="ck">✓</span>Dolby Atmos</li>
+      </ul>
+      <button class="btn-plan" onclick="if(!Auth.current()){window.location.href='signup.html'}else{showToast('Premium selected! 🎉')}">Get Started</button>
+    </div>
+    <div class="plan">
+      <div class="plan-name">Student</div>
+      <div class="plan-price">₹99<span>/mo</span></div>
+      <ul class="plan-feats">
+        <li><span class="ck">✓</span>HD 720p</li>
+        <li><span class="ck">✓</span>1 Screen at a time</li>
+        <li><span class="ck">✓</span>8,000+ titles</li>
+        <li><span class="ck">✓</span>Mobile only</li>
+        <li><span class="ck">✗</span>Downloads</li>
+        <li><span class="ck">✗</span>4K / Dolby</li>
+      </ul>
+      <button class="btn-plan" onclick="if(!Auth.current()){window.location.href='signup.html'}else{showToast('Student plan selected!')}">Get Started</button>
+    </div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script src="shared.js"></script>
+<script>
+const HERO_SLIDES = [
+  {id:0,  type:'movie', title:"PARADISE",       img:"posters/paradise.jpeg",   rating:"9.0", lang:"Telugu",  year:"2025", desc:"A high-octane action drama. When a decorated officer uncovers a deadly conspiracy, he must fight to protect everything he loves — at any cost."},
+  {id:1,  type:'movie', title:"BAAHUBALI 2",    img:"posters/baahubali-2.jpg", rating:"9.5", lang:"Telugu",  year:"2017", desc:"The epic conclusion to a legendary saga — two brothers, one kingdom, an unforgettable war for the throne."},
+  {id:2,  type:'movie', title:"RRR",             img:"posters/rrr.jpg",          rating:"8.5", lang:"Telugu",  year:"2022", desc:"Friendship forged in fire. Two legendary freedom fighters who fought bravely against British rule in India."},
+  {id:18, type:'movie', title:"KGF CHAPTER 2",  img:"posters/kgf.jpeg",         rating:"8.2", lang:"Kannada", year:"2022", desc:"Rocky's empire faces its greatest threat. The king of gold faces a powerful nemesis in this explosive sequel."},
+  {id:101,type:'show',  title:"PHANTOM KINGDOM",img:"https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=800&q=70", rating:"9.1", lang:"English", year:"2024", desc:"In a kingdom where magic is forbidden, a young blacksmith discovers he is the heir to the most powerful sorcerer throne."},
+];
+
+const CW_DATA = [
+  {id:1,  type:'movie', ep:"Full Movie • 45 min left", progress:72, img:"posters/baahubali-2.jpg", title:"Baahubali 2"},
+  {id:2,  type:'movie', ep:"Full Movie • 1h 20m left", progress:45, img:"posters/rrr.jpg",          title:"RRR"},
+  {id:18, type:'movie', ep:"Full Movie • 30 min left", progress:80, img:"posters/kgf.jpeg",          title:"KGF 2"},
+  {id:101,type:'show',  ep:'S1 E3 "The Forbidden Spell"',progress:35,img:"https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=400&q=70",title:"Phantom Kingdom"},
+];
+
+let hIdx = 0;
+
+function applyHero(i, anim) {
+  const s  = HERO_SLIDES[i];
+  const bg = document.getElementById('heroBg');
+  if (anim) bg.style.opacity = 0;
+  setTimeout(() => {
+    bg.style.backgroundImage = `linear-gradient(to right,rgba(8,12,20,1) 35%,rgba(8,12,20,.55) 70%,rgba(8,12,20,.1) 100%),linear-gradient(to top,rgba(8,12,20,1) 0%,transparent 28%),url('${s.img}')`;
+    document.getElementById('heroTitle').textContent    = s.title;
+    document.getElementById('heroRating').textContent   = s.rating + '/10';
+    document.getElementById('heroLang').textContent     = s.lang;
+    document.getElementById('heroYear').textContent     = s.year;
+    document.getElementById('heroDesc').textContent     = s.desc;
+    document.getElementById('heroPlay').onclick = () => playContent(s.id, s.type);
+    refreshHeroWish(s);
+    document.querySelectorAll('.htumb').forEach((t, j) => t.classList.toggle('active', j === i));
+    if (anim) bg.style.opacity = 1;
+  }, anim ? 400 : 0);
+}
+
+function refreshHeroWish(s) {
+  const wb  = document.getElementById('heroWish');
+  const inL = Watchlist.has(s.id);
+  wb.textContent = inL ? '❤️ In Wishlist' : '🤍 Wishlist';
+  wb.onclick = () => {
+    wlToggle(s.id); refreshHeroWish(s);
+  };
+}
+
+function buildHeroThumbs() {
+  document.getElementById('heroThumbs').innerHTML = HERO_SLIDES.map((s, i) => `
+    <div class="htumb ${i===0?'active':''}" onclick="hIdx=${i};applyHero(${i},true)">
+      <img src="${s.img}" alt="${s.title}" onerror="this.style.background='#1a2035';this.removeAttribute('src')"/>
+    </div>`).join('');
+}
+
+function renderContinue() {
+  const sec = document.getElementById('cwSection');
+  if (!Auth.current()) { if(sec) sec.style.display='none'; return; }
+  document.getElementById('continueRow').innerHTML = CW_DATA.map(c => `
+    <div class="cw-card" onclick="playContent(${c.id},'${c.type}')">
+      <div class="cw-thumb">
+        <img src="${c.img}" alt="${c.title}" onerror="this.style.background='#1a2035';this.removeAttribute('src')"/>
+        <div class="pov">▶</div>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${c.progress}%"></div></div>
+      <div class="cw-info">
+        <div class="cw-title">${c.title}</div>
+        <div class="cw-ep">${c.ep} · ${c.progress}% watched</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderShowsRow() {
+  document.getElementById('showsRow').innerHTML = MOVIES_DB.tvshows.map(s => {
+    const inList = Watchlist.has(s.id);
+    return `
+      <div class="show-card-home">
+        <div class="sch-img">
+          <img src="${s.img}" alt="${s.title}" onerror="this.style.background='#1a2035';this.removeAttribute('src')"/>
+          <div class="sch-orig">ORIGINAL</div>
+          <div class="sch-rating">★ ${s.rating}</div>
+        </div>
+        <div class="sch-body">
+          <div class="sch-title">${s.title}</div>
+          <div class="sch-meta">${s.seasons} Seasons · ${s.lang} · ${s.genre}</div>
+          <div class="sch-actions">
+            <button class="sch-btn play" onclick="playContent(${s.id},'show')">▶ Play</button>
+            <button class="sch-btn wish wl-${s.id}" onclick="wlToggle(${s.id})">${inList?'❤️':'🤍'}</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildNav('home');
+  buildFooter();
+  document.getElementById('heroBg').style.transition = 'opacity .5s';
+  applyHero(0, false);
+  buildHeroThumbs();
+  buildParticles();
+  renderContinue();
+  renderShowsRow();
+  document.getElementById('trendingGrid').innerHTML  = MOVIES_DB.trending.map(makeCard).join('');
+  document.getElementById('mostViewedRow').innerHTML = MOVIES_DB.mostViewed.map(makeCard).join('');
+  document.getElementById('hollywoodGrid').innerHTML = MOVIES_DB.hollywood.map(makeCard).join('');
+  renderTop10();
+  setInterval(() => { hIdx=(hIdx+1)%HERO_SLIDES.length; applyHero(hIdx,true); }, 4000);
+  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 1600);
+  initReveal();
+  initNavScroll();
+});
+</script>
+</body>
+</html>

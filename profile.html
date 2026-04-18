@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile — StreamVault</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    /* ── PROFILE HERO ── */
+    .profile-hero {
+      min-height: 260px; position: relative;
+      display: flex; align-items: flex-end;
+      padding: 0 var(--px, 5%) 2.2rem;
+      overflow: hidden; margin-top: var(--nav, 66px);
+      background: linear-gradient(135deg, #0e1525, #1a0a0a);
+    }
+    .profile-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(229,9,20,.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 30%, rgba(255,107,53,.07) 0%, transparent 50%);
+    }
+    .profile-info {
+      position: relative; z-index: 1;
+      display: flex; gap: 1.5rem; align-items: flex-end; width: 100%; flex-wrap: wrap;
+    }
+    .profile-avatar-large {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: var(--grad); display: flex; align-items: center; justify-content: center;
+      font-family: var(--fd, 'Bebas Neue', sans-serif); font-size: 2.2rem;
+      border: 3px solid var(--red); flex-shrink: 0;
+      box-shadow: 0 0 28px rgba(229,9,20,.4);
+    }
+    .profile-text { flex: 1; min-width: 180px; }
+    .profile-name  { font-family: var(--fd, 'Bebas Neue', sans-serif); font-size: clamp(1.8rem,5vw,2.4rem); letter-spacing: 1px; margin-bottom: .25rem; }
+    .profile-email { color: var(--muted); font-size: .88rem; margin-bottom: .6rem; }
+    .profile-badges { display: flex; gap: .6rem; flex-wrap: wrap; }
+    .pbadge { padding: 3px 11px; border-radius: 20px; font-size: .73rem; font-weight: 600; border: 1px solid rgba(245,197,24,.3); background: rgba(245,197,24,.08); color: var(--gold); }
+    .pbadge.plan { border-color: rgba(229,9,20,.3); background: rgba(229,9,20,.08); color: var(--red); }
+
+    /* ── TABS ── */
+    .profile-tabs-wrap { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: var(--nav, 66px); z-index: 100; }
+    .profile-tabs { display: flex; padding: 0 var(--px, 5%); overflow-x: auto; scrollbar-width: none; }
+    .profile-tabs::-webkit-scrollbar { display: none; }
+    .ptab { padding: .9rem 1.2rem; font-size: .85rem; font-weight: 600; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; flex-shrink: 0; }
+    .ptab.active { color: #fff; border-bottom-color: var(--red); }
+    .ptab:hover { color: var(--text); }
+
+    /* ── PANELS ── */
+    .profile-content { padding: 1.8rem var(--px, 5%); }
+    .ptab-panel { display: none; }
+    .ptab-panel.active { display: block; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── STATS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .9rem; margin-bottom: 1.8rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; text-align: center; }
+    .stat-val  { font-family: var(--fd, 'Bebas Neue', sans-serif); font-size: 1.9rem; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-lbl  { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: .2rem; }
+
+    /* ── WISHLIST GRID ── */
+    .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 1rem; }
+    @media(max-width:480px) { .wishlist-grid { grid-template-columns: repeat(2,1fr); } }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .empty-state .e-icon { font-size: 2.8rem; margin-bottom: .8rem; }
+    .empty-state h3 { font-family: var(--fd, 'Bebas Neue', sans-serif); font-size: 1.6rem; margin-bottom: .4rem; color: var(--text); }
+    .empty-state p { font-size: .9rem; margin-bottom: 1.2rem; }
+    .empty-state a { color: var(--red); text-decoration: none; font-weight: 600; }
+
+    /* ── HISTORY ── */
+    .history-list { display: flex; flex-direction: column; gap: .75rem; }
+    .history-item { display: flex; align-items: center; gap: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: .8rem 1rem; flex-wrap: wrap; }
+    .history-thumb { width: 52px; height: 72px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+    .history-info { flex: 1; min-width: 120px; }
+    .history-title { font-weight: 600; font-size: .88rem; margin-bottom: .2rem; }
+    .history-meta  { font-size: .73rem; color: var(--muted); }
+    .history-prog  { margin-top: .4rem; height: 3px; background: rgba(255,255,255,.1); border-radius: 3px; }
+    .history-fill  { height: 100%; background: var(--red); border-radius: 3px; }
+
+    /* ── SETTINGS ── */
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; max-width: 680px; }
+    @media(max-width:600px) { .settings-grid { grid-template-columns: 1fr; } }
+    .sg { margin-bottom: .5rem; }
+    .sg label { display: block; font-size: .76rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: .45rem; }
+    .sg input, .sg select {
+      width: 100%; padding: 11px 14px; background: rgba(255,255,255,.05);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-family: var(--fb, 'Outfit', sans-serif); font-size: .9rem; outline: none; transition: border-color .2s;
+    }
+    .sg input:focus, .sg select:focus { border-color: var(--red); }
+    .sg select option { background: var(--surface); }
+
+    /* ── PLAN CARDS ── */
+    .plan-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 1rem; max-width: 680px; margin-bottom: 1.8rem; }
+    .plan-card-sm { background: var(--surface); border: 2px solid var(--border); border-radius: 12px; padding: 1.2rem; transition: all .25s; cursor: pointer; }
+    .plan-card-sm:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(229,9,20,.12); }
+    .plan-card-sm.current { border-color: var(--red); background: linear-gradient(135deg, rgba(229,9,20,.09), var(--surface)); }
+    .pcname  { font-family: var(--fd, 'Bebas Neue', sans-serif); font-size: 1.25rem; margin-bottom: .2rem; }
+    .pcprice { font-size: .85rem; color: var(--red); font-weight: 600; margin-bottom: .3rem; }
+    .pcbadge { display: inline-block; margin-top: .5rem; font-size: .67rem; background: var(--red); color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+
+    /* ── SECTION HEADERS ── */
+    .panel-title { font-family: var(--fd, 'Bebas Neue', sans-serif); font-size: 1.4rem; margin-bottom: 1.1rem; }
+    .panel-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; flex-wrap: wrap; gap: .7rem; }
+  </style>
+</head>
+<body>
+
+<nav id="mainNav"></nav>
+<div class="mob-menu" id="mobMenu"></div>
+
+<!-- PROFILE HERO -->
+<div class="profile-hero">
+  <div class="profile-info">
+    <div class="profile-avatar-large" id="profAvatar">JD</div>
+    <div class="profile-text">
+      <div class="profile-name"  id="profName">Loading…</div>
+      <div class="profile-email" id="profEmail"></div>
+      <div class="profile-badges">
+        <span class="pbadge"      id="profJoined">Member</span>
+        <span class="pbadge plan" id="profPlan">Basic</span>
+        <span class="pbadge">✓ Verified</span>
+      </div>
+    </div>
+    <button class="btn-h btn-info" onclick="Auth.logout()" style="font-size:.83rem;padding:9px 18px;flex-shrink:0;">🚪 Sign Out</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="profile-tabs-wrap">
+  <div class="profile-tabs">
+    <div class="ptab active"   onclick="switchTab('overview')">📊 Overview</div>
+    <div class="ptab"          onclick="switchTab('list')">❤️ Wishlist</div>
+    <div class="ptab"          onclick="switchTab('history')">🕓 History</div>
+    <div class="ptab"          onclick="switchTab('settings')">⚙️ Settings</div>
+    <div class="ptab"          onclick="switchTab('plan')">💳 My Plan</div>
+  </div>
+</div>
+
+<div class="profile-content">
+
+  <!-- OVERVIEW -->
+  <div class="ptab-panel active" id="ptab-overview">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="statWatched">5</div><div class="stat-lbl">Watched</div></div>
+      <div class="stat-card"><div class="stat-val" id="statList">0</div><div class="stat-lbl">Wishlist</div></div>
+      <div class="stat-card"><div class="stat-val">4K</div><div class="stat-lbl">Quality</div></div>
+      <div class="stat-card"><div class="stat-val" id="statPlan">Basic</div><div class="stat-lbl">Plan</div></div>
+    </div>
+    <h3 class="panel-title">Recently Watched</h3>
+    <div class="history-list" id="overviewHistory"></div>
+  </div>
+
+  <!-- WISHLIST -->
+  <div class="ptab-panel" id="ptab-list">
+    <div class="panel-hdr">
+      <h3 class="panel-title" style="margin-bottom:0;">
+        My Wishlist <span style="color:var(--red);font-size:1rem;" id="listCount"></span>
+      </h3>
+      <button class="btn-h btn-info" onclick="clearWishlist()" style="font-size:.8rem;padding:8px 16px;">🗑 Clear All</button>
+    </div>
+    <div class="wishlist-grid" id="wishlistGrid">
+      <!-- rendered by renderWishlist() -->
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="ptab-panel" id="ptab-history">
+    <h3 class="panel-title">Watch History</h3>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="ptab-panel" id="ptab-settings">
+    <h3 class="panel-title">Account Settings</h3>
+    <div class="settings-grid">
+      <div class="sg"><label>Full Name</label><input type="text"  id="settingName"    placeholder="Your name"/></div>
+      <div class="sg"><label>Email</label>    <input type="email" id="settingEmail"   placeholder="your@email.com"/></div>
+      <div class="sg"><label>New Password</label><input type="password" id="settingPwd" placeholder="Leave blank to keep current"/></div>
+      <div class="sg">
+        <label>Language</label>
+        <select id="settingLang">
+          <option>English</option><option>Telugu</option><option>Hindi</option><option>Tamil</option>
+        </select>
+      </div>
+      <div class="sg">
+        <label>Playback Quality</label>
+        <select id="settingQuality">
+          <option>Auto</option><option>4K Ultra HD</option><option>Full HD 1080p</option><option>HD 720p</option>
+        </select>
+      </div>
+      <div class="sg">
+        <label>Notifications</label>
+        <select id="settingNotif">
+          <option>All notifications</option><option>New releases only</option><option>None</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:.9rem;flex-wrap:wrap;margin-top:.5rem;">
+      <button class="btn-h btn-play"  onclick="saveSettings()">💾 Save Changes</button>
+      <button class="btn-h btn-info"  onclick="if(confirm('Delete your account? This cannot be undone.')){Auth.logout();}" style="color:#ff6b6b;border-color:rgba(255,107,107,.3);">🗑 Delete Account</button>
+    </div>
+  </div>
+
+  <!-- PLAN -->
+  <div class="ptab-panel" id="ptab-plan">
+    <h3 class="panel-title">My Subscription Plan</h3>
+    <div class="plan-cards">
+      <div class="plan-card-sm" id="pc-Basic"   onclick="changePlan('Basic')">
+        <div class="pcname">Basic</div>
+        <div class="pcprice">₹149 / month</div>
+        <div style="font-size:.8rem;color:var(--muted)">HD · 1 Screen · Mobile &amp; Tablet</div>
+      </div>
+      <div class="plan-card-sm" id="pc-Premium" onclick="changePlan('Premium')">
+        <div class="pcname">Premium</div>
+        <div class="pcprice">₹499 / month</div>
+        <div style="font-size:.8rem;color:var(--muted)">4K · 4 Screens · All Devices · Downloads</div>
+      </div>
+      <div class="plan-card-sm" id="pc-Student" onclick="changePlan('Student')">
+        <div class="pcname">Student</div>
+        <div class="pcprice">₹99 / month</div>
+        <div style="font-size:.8rem;color:var(--muted)">HD · 1 Screen · Mobile Only</div>
+      </div>
+    </div>
+    <button class="btn-h btn-play" onclick="showToast('Plan updated! 🎉')">✔ Confirm Plan Change</button>
+  </div>
+
+</div><!-- /profile-content -->
+
+<footer id="mainFooter"></footer>
+
+<script src="shared.js"></script>
+<script>
+/* ─────────────────────────────────────────
+   HISTORY MOCK DATA
+───────────────────────────────────────── */
+var HISTORY_MOCK = [
+  { title:"Baahubali 2",  img:"posters/baahubali-2.jpg",        meta:"Telugu · 2017 · Action",  progress:72,  id:1  },
+  { title:"RRR",          img:"posters/rrr.jpg",                 meta:"Telugu · 2022 · Action",  progress:45,  id:2  },
+  { title:"KGF 2",        img:"posters/kgf.jpeg",                meta:"Kannada · 2022 · Action", progress:80,  id:18 },
+  { title:"Sita Ramam",   img:"posters/sita ramam.jpeg",         meta:"Telugu · 2022 · Romance", progress:35,  id:25 },
+  { title:"Inception",    img:"posters/inception.jpg",           meta:"English · 2010 · Sci-Fi", progress:100, id:32 },
+];
+
+/* ─────────────────────────────────────────
+   TAB SWITCHER
+───────────────────────────────────────── */
+var TAB_NAMES = ['overview','list','history','settings','plan'];
+
+function switchTab(name) {
+  // tabs
+  document.querySelectorAll('.ptab').forEach(function(t, i) {
+    t.classList.toggle('active', TAB_NAMES[i] === name);
+  });
+  // panels
+  document.querySelectorAll('.ptab-panel').forEach(function(p) {
+    p.classList.toggle('active', p.id === 'ptab-' + name);
+  });
+  // if switching to wishlist, always re-render so count is up to date
+  if (name === 'list') renderWishlist();
+}
+
+/* ─────────────────────────────────────────
+   WISHLIST RENDER  — fixed, no quote issues
+───────────────────────────────────────── */
+function renderWishlist() {
+  var grid  = document.getElementById('wishlistGrid');
+  var count = document.getElementById('listCount');
+  if (!grid) return;
+
+  var list = Watchlist.get();
+
+  // update counters everywhere
+  count.textContent = '(' + list.length + ')';
+  var statEl = document.getElementById('statList');
+  if (statEl) statEl.textContent = list.length;
+
+  // empty state
+  if (list.length === 0) {
+    grid.innerHTML =
+      '<div class="empty-state">' +
+        '<div class="e-icon">❤️</div>' +
+        '<h3>Your Wishlist is empty</h3>' +
+        '<p>Browse <a href="movies.html">Movies</a> or <a href="tvshows.html">TV Shows</a> and tap ♡ to save titles here.</p>' +
+        '<a class="btn-h btn-play" href="movies.html" style="display:inline-flex;margin-top:.5rem;">🎬 Browse Movies</a>' +
+      '</div>';
+    return;
+  }
+
+  // build cards
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var m    = list[i];
+    var type = m.type || 'movie';
+    var info = m.seasons ? (m.seasons + ' Seasons · ' + m.lang) : (m.lang + ' · ' + m.year);
+    var imgErr = "this.style.background='linear-gradient(135deg,#1a2035,#0e1525)';this.removeAttribute('src')";
+
+    html +=
+      '<div class="mc" data-id="' + m.id + '">' +
+        '<img src="' + m.img + '" alt="' + m.title + '" loading="lazy" onerror="' + imgErr + '"/>' +
+        (m.badge ? '<div class="c-badge">' + m.badge + '</div>' : '') +
+        '<div class="c-rating">★ ' + m.rating + '</div>' +
+        '<div class="c-overlay">' +
+          '<div class="c-title">' + m.title + '</div>' +
+          '<div class="c-info">'  + info    + '</div>' +
+          '<div class="c-actions">' +
+            '<button class="ca play"' +
+              ' onclick="playContent(' + m.id + ',\'' + type + '\')">' +
+              '▶ Play' +
+            '</button>' +
+            '<button class="ca add"' +
+              ' style="background:rgba(229,9,20,.18);color:#ff6b6b;border-color:rgba(229,9,20,.35);"' +
+              ' onclick="removeFromWishlist(' + m.id + ')">' +
+              '✕ Remove' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+/* Remove one item and re-render */
+function removeFromWishlist(id) {
+  Watchlist.remove(id);
+  renderWishlist();
+  showToast('Removed from Wishlist', '🗑️');
+}
+
+/* Clear all */
+function clearWishlist() {
+  if (!confirm('Clear your entire Wishlist?')) return;
+  localStorage.setItem('sv_watchlist', '[]');
+  renderWishlist();
+  showToast('Wishlist cleared');
+}
+
+/* ─────────────────────────────────────────
+   WATCH HISTORY
+───────────────────────────────────────── */
+function renderHistory() {
+  var rows = '';
+  for (var i = 0; i < HISTORY_MOCK.length; i++) {
+    var h = HISTORY_MOCK[i];
+    var imgErr = "this.style.background='#1a2035';this.removeAttribute('src')";
+    rows +=
+      '<div class="history-item">' +
+        '<img class="history-thumb" src="' + h.img + '" alt="' + h.title + '" onerror="' + imgErr + '"/>' +
+        '<div class="history-info">' +
+          '<div class="history-title">' + h.title + '</div>' +
+          '<div class="history-meta">'  + h.meta  + '</div>' +
+          '<div class="history-prog"><div class="history-fill" style="width:' + h.progress + '%"></div></div>' +
+          '<div style="font-size:.7rem;color:var(--muted);margin-top:.25rem;">' + h.progress + '% watched</div>' +
+        '</div>' +
+        '<button class="btn-h btn-play"' +
+          ' onclick="playContent(' + h.id + ',\'movie\')"' +
+          ' style="font-size:.78rem;padding:8px 14px;flex-shrink:0;">▶ Resume</button>' +
+      '</div>';
+  }
+  var histEl = document.getElementById('historyList');
+  var ovEl   = document.getElementById('overviewHistory');
+  if (histEl) histEl.innerHTML = rows;
+  if (ovEl)   ovEl.innerHTML   = rows;
+}
+
+/* ─────────────────────────────────────────
+   PLAN
+───────────────────────────────────────── */
+function changePlan(plan) {
+  var user = Auth.current();
+  if (!user) return;
+  user.plan = plan;
+  localStorage.setItem('sv_user', JSON.stringify(user));
+  // remove old badges
+  document.querySelectorAll('[id^="pc-"]').forEach(function(el) {
+    el.classList.remove('current');
+    var b = el.querySelector('.pcbadge');
+    if (b) b.remove();
+  });
+  var el = document.getElementById('pc-' + plan);
+  if (el) {
+    el.classList.add('current');
+    var badge = document.createElement('div');
+    badge.className = 'pcbadge';
+    badge.textContent = 'Current Plan';
+    el.appendChild(badge);
+  }
+  document.getElementById('profPlan').textContent = plan;
+  document.getElementById('statPlan').textContent = plan;
+  showToast('Plan changed to ' + plan + ' 🎉');
+}
+
+/* ─────────────────────────────────────────
+   SETTINGS
+───────────────────────────────────────── */
+function saveSettings() {
+  var user = Auth.current();
+  if (!user) return;
+  var name = document.getElementById('settingName').value.trim();
+  if (name) {
+    user.name   = name;
+    user.avatar = name.slice(0,2).toUpperCase();
+  }
+  localStorage.setItem('sv_user', JSON.stringify(user));
+  showToast('Settings saved ✓');
+  setTimeout(function() { location.reload(); }, 900);
+}
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', function() {
+  if (!Auth.require()) return;
+
+  buildNav('list');
+  buildFooter();
+  initNavScroll();
+
+  var user = Auth.current();
+
+  // fill hero
+  document.getElementById('profAvatar').textContent  = user.avatar || user.name.slice(0,2).toUpperCase();
+  document.getElementById('profName').textContent    = user.name;
+  document.getElementById('profEmail').textContent   = user.email;
+  document.getElementById('profJoined').textContent  = 'Joined ' + (user.joined || 'Recently');
+  document.getElementById('profPlan').textContent    = user.plan  || 'Basic';
+  document.getElementById('statPlan').textContent    = user.plan  || 'Basic';
+  document.getElementById('statWatched').textContent = HISTORY_MOCK.length;
+
+  // settings pre-fill
+  document.getElementById('settingName').value  = user.name;
+  document.getElementById('settingEmail').value = user.email;
+
+  // highlight current plan
+  var plan   = user.plan || 'Basic';
+  var planEl = document.getElementById('pc-' + plan);
+  if (planEl) {
+    planEl.classList.add('current');
+    var badge = document.createElement('div');
+    badge.className   = 'pcbadge';
+    badge.textContent = 'Current Plan';
+    planEl.appendChild(badge);
+  }
+
+  // render wishlist & history
+  renderWishlist();
+  renderHistory();
+
+  // check URL for tab param  e.g. profile.html?tab=list
+  var tab = new URLSearchParams(window.location.search).get('tab');
+  if (tab) switchTab(tab);
+});
+</script>
+</body>
+</html>
