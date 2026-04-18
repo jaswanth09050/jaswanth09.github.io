@@ -1,12 +1,4 @@
-/* ═══════════════════════════════════════════════
-   STREAMVAULT  shared.js  v5  — FIXED
-   ✔ New TV show poster paths from your posters/
-   ✔ Wishlist fully working (updates all buttons)
-   ✔ Profile avatar dropdown with user info
-   ✔ Mobile menu with user details
-   ✔ buildParticles + renderTop10 included
-   ✔ No missing functions
-═══════════════════════════════════════════════ */
+
 
 /* ── AUTH ── */
 const Auth = {
@@ -106,7 +98,7 @@ function playContent(id, type) {
 ══════════════════════════════════════ */
 const MOVIES_DB = {
   trending: [
-    {id:1,  title:"Baahubali 2",           img:"posters/baahubali-2.jpg",           year:"2017",rating:"9.5",lang:"Telugu", badge:"TOP",   genre:"Action",  desc:"The epic conclusion to the Baahubali saga — two brothers, one kingdom, an unforgettable war for the throne of Mahishmati.",           duration:"2h 47m",type:"movie"},
+    {id:1,  title:"Baahubali 2",           img:"POSTERS/baahubali-2.jpg",           year:"2017",rating:"9.5",lang:"Telugu", badge:"TOP",   genre:"Action",  desc:"The epic conclusion to the Baahubali saga — two brothers, one kingdom, an unforgettable war for the throne of Mahishmati.",           duration:"2h 47m",type:"movie"},
     {id:2,  title:"RRR",                   img:"posters/rrr.jpg",                   year:"2022",rating:"8.5",lang:"Telugu", badge:"4K",    genre:"Action",  desc:"Two legendary freedom fighters — Ram and Bheem — cross paths in a powerful story of friendship and revolution against British rule.", duration:"3h 7m", type:"movie"},
     {id:3,  title:"Animal",                img:"posters/animal.jpg",                year:"2023",rating:"7.5",lang:"Hindi",  badge:"HOT",   genre:"Action",  desc:"A son's obsessive love for his father turns into a deadly quest for revenge in this raw, unapologetic action drama.",               duration:"3h 21m",type:"movie"},
     {id:4,  title:"Jawan",                 img:"posters/jawan.jpg",                 year:"2023",rating:"7.9",lang:"Hindi",  badge:"",      genre:"Thriller",desc:"A man is driven by a personal vendetta to rectify the wrongs in society, while keeping a promise made years ago.",                   duration:"2h 49m",type:"movie"},
