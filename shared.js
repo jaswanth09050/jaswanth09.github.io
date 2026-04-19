@@ -31,11 +31,7 @@ const Auth = {
   }
 };
 
-/* ══════════════════════════════════════
-   WISHLIST  — stores full movie objects
-   • wlAdd / wlRemove / wlHas / wlToggle
-   • wlRefreshButtons(id) — syncs ALL ♡ buttons for that movie on the page
-══════════════════════════════════════ */
+
 const Watchlist = {
   _key: 'sv_watchlist',
   get() {
@@ -67,8 +63,7 @@ const Watchlist = {
   }
 };
 
-/* wlToggle(id) — called by every ♡ button.
-   Adds/removes from wishlist AND updates ALL buttons for that movie on the page instantly. */
+
 function wlToggle(id) {
   if (!Auth.current()) { window.location.href = 'login.html'; return; }
   id = parseInt(id);
@@ -92,10 +87,6 @@ function playContent(id, type) {
   window.location.href = `player.html?id=${id}&type=${type || 'movie'}`;
 }
 
-/* ══════════════════════════════════════
-   MOVIES DATABASE
-   TV show images updated to your posters/
-══════════════════════════════════════ */
 const MOVIES_DB = {
   trending: [
     {id:1,  title:"Baahubali 2",           img:"POSTERS/baahubali-2.jpg",           year:"2017",rating:"9.5",lang:"Telugu", badge:"TOP",   genre:"Action",  desc:"The epic conclusion to the Baahubali saga — two brothers, one kingdom, an unforgettable war for the throne of Mahishmati.",           duration:"2h 47m",type:"movie"},
@@ -152,7 +143,7 @@ const MOVIES_DB = {
      duration:"2h 35m",type:"movie"},
   ],
 
-  /* ── TV SHOWS — using YOUR updated poster paths ── */
+  
   tvshows: [
     {
       id:101, type:"show", title:"Phantom Kingdom",
@@ -277,9 +268,7 @@ MOVIES_DB.all = [
   ...MOVIES_DB.tvshows,
 ];
 
-/* ══════════════════════════════════════
-   TOAST
-══════════════════════════════════════ */
+
 let _tt;
 function showToast(msg, icon = '✅') {
   let t = document.getElementById('toast');
@@ -296,11 +285,6 @@ function showToast(msg, icon = '✅') {
   _tt = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-/* ══════════════════════════════════════
-   MAKE CARD — ▶ Play + ❤️ Wishlist button
-   Every wishlist button uses class wl-{id}
-   so wlToggle() can update all at once.
-══════════════════════════════════════ */
 function makeCard(m) {
   const type   = m.type || 'movie';
   const inList = Watchlist.has(m.id);
@@ -324,9 +308,7 @@ function makeCard(m) {
     </div>`;
 }
 
-/* ══════════════════════════════════════
-   BUILD PARTICLES (used by index.html)
-══════════════════════════════════════ */
+
 function buildParticles() {
   const c = document.getElementById('particles');
   if (!c) return;
@@ -340,9 +322,7 @@ function buildParticles() {
   }
 }
 
-/* ══════════════════════════════════════
-   RENDER TOP 10 (used by index.html)
-══════════════════════════════════════ */
+
 function renderTop10() {
   const el = document.getElementById('top10Row');
   if (!el) return;
@@ -359,12 +339,9 @@ function renderTop10() {
     </div>`).join('');
 }
 
-/* ══════════════════════════════════════
-   NAVBAR — desktop + mobile with user info + avatar dropdown
-══════════════════════════════════════ */
 function buildNav(activePage) {
 
-  /* inject avatar dropdown CSS once */
+  
   if (!document.getElementById('sv-nav-style')) {
     const s = document.createElement('style');
     s.id = 'sv-nav-style';
@@ -501,9 +478,7 @@ function toggleMobMenu() {
   if (h) h.classList.toggle('open');
 }
 
-/* ══════════════════════════════════════
-   FOOTER
-══════════════════════════════════════ */
+
 function buildFooter() {
   const f = document.getElementById('mainFooter');
   if (!f) return;
@@ -544,9 +519,7 @@ function buildFooter() {
     </div>`;
 }
 
-/* ══════════════════════════════════════
-   HELPERS
-══════════════════════════════════════ */
+
 function initReveal() {
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
